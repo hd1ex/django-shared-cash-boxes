@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+{% load django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% breadcrumb 'Cash' 'cash_box_index' %}
+    {% breadcrumb 'Boxes' 'cash_box_overview' %}
+    {% breadcrumb cash_box 'cash_box_detail_view' name=cash_box %}
+    {% breadcrumb 'Transactions' 'cash_box_transaction_overview' %}
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    <h2>
+        {% blocktrans %}
+            List of your transactions with {{ cash_box }}
+        {% endblocktrans %}
+    </h2>
+
+    <h4>
+        {% if user_balance > 0 %}
+            {% blocktrans %}
+                The system owes you {{ abs_user_balance }}
+            {% endblocktrans %}
+        {% elif user_balance < 0 %}
+            {% blocktrans %}
+                You owe the system {{ abs_user_balance }}
+            {% endblocktrans %}
+        {% else %}
+            {% blocktrans %} Call it quits. {% endblocktrans %}
+        {% endif %}
+    </h4>
+
+    {% include 'shared_cash_boxes/search.html' %}
+
+    <table id='transaction-list' class='table table-striped tablesorter'>
+        <thead>
+        <tr>
+            <th>{% trans 'Date' %}</th>
+            <th>{% trans 'Description' %}</th>
+            <th>{% trans 'Amount' %}</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for transaction in object_list %}
+            <tr>
+                <td>{{ transaction.date }}</td>
+                <td>
+                    {% if transaction.description %}
+                        {{ transaction.description }}
+                    {% else %}
+                        {% trans 'Cash flow' %}
+                    {% endif %}
+                </td>
+                <td>{{ transaction.get_amount }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

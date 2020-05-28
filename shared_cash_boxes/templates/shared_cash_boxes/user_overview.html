@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% load django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% breadcrumb 'Cash' 'cash_box_index' %}
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    <h2>
+        {% load i18n %}
+        {% if total_user_balance > 0 %}
+            {% blocktrans %}
+                The system owes you {{ abs_total_user_balance }}
+            {% endblocktrans %}
+        {% elif total_user_balance < 0 %}
+            {% blocktrans %}
+                You owe the system {{ abs_total_user_balance }}
+            {% endblocktrans %}
+        {% else %}
+            {% blocktrans %} Call it quits. {% endblocktrans %}
+        {% endif %}
+    </h2>
+
+    <a href="{% url 'cash_box_overview' %}">
+        <button class="btn btn-info mb-4">
+            {% blocktrans %}
+                Click here for a general cash box overview
+            {% endblocktrans %}
+        </button>
+    </a>
+
+    {% include 'shared_cash_boxes/search.html' %}
+
+    <table id="cash-boxes-list" class="table table-striped tablesorter">
+        <thead>
+        <tr>
+            <th>{% trans 'Name' %}</th>
+            <th>{% trans 'Your current balance' %}</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for cash_box in object_list %}
+            <tr>
+                <td>
+                    <a href="{% url 'cash_box_transaction_overview' name=cash_box.name %}">
+                        {{ cash_box.name }}
+                    </a>
+                </td>
+                <td>{{ cash_box.user_balance }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

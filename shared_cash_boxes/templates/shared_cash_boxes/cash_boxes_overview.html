@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+{% load django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    {% breadcrumb 'Cash' 'cash_box_index' %}
+    {% breadcrumb 'Boxes' 'cash_box_overview' %}
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    <h2>{% trans 'List of cash boxes' %}</h2>
+
+    {% include 'shared_cash_boxes/search.html' %}
+
+    <table id="cash-boxes-list" class="table table-striped tablesorter">
+        <thead>
+        <tr>
+            <th>{% trans 'Name' %}</th>
+            <th>{% trans 'Current balance' %}</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for cash_box in object_list %}
+            <tr>
+                <td>
+                    <a href="{% url 'cash_box_detail_view' name=cash_box.name %}">
+                        {{ cash_box.name }}
+                    </a>
+                </td>
+                <td>{{ cash_box.get_balance }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

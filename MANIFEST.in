@@ -1,0 +1,4 @@
+include LICENSE
+include README.rst
+recursive-include shared-cash-boxes/static *
+recursive-include shared-cash-boxes/templates *
