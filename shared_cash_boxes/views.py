@@ -1,11 +1,14 @@
 from typing import Any, Dict
 
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect, HttpRequest
+from django.shortcuts import get_object_or_404, render, reverse
 from django.utils.translation import gettext
 from django.views.generic import ListView
 
+from shared_cash_boxes.forms import InvoiceForm
 from shared_cash_boxes.models import CashBox, Euro, Invoice, Transaction
 
 
@@ -103,3 +106,26 @@ class TransactionList(LoginRequiredMixin, ListView):
             self.request.user)
         context['abs_user_balance'] = Euro(abs(context['user_balance']))
         return context
+
+
+@login_required
+def invoice_submission_view(request: HttpRequest, name: str):
+    if request.method == 'POST':
+        form = InvoiceForm(request.POST, request.FILES)
+        if form.is_valid():
+            invoice = Invoice(user=request.user,
+                              cash_box=get_object_or_404(CashBox, name=name),
+                              date=form.cleaned_data['date'],
+                              amount=-form.cleaned_data['amount'] * 100,
+                              description=form.cleaned_data['description'],
+                              file=form.cleaned_data['file'])
+
+            invoice.save()
+
+            return HttpResponseRedirect(
+                reverse('cash_box_detail_view', args=[name]))
+    else:
+        form = InvoiceForm()
+
+    return render(request, 'shared_cash_boxes/invoice_submission.html',
+                  {'form': form, 'cash_box': name})
