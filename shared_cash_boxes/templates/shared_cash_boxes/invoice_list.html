@@ -19,16 +19,24 @@
         {% endblocktrans %}
     </h2>
 
+    <a href="{% url 'cash_box_transaction_overview' name=cash_box.name %}">
+        <button class="btn btn-info mb-3">
+            {% blocktrans %}
+                Click here to view your transactions
+            {% endblocktrans %}
+        </button>
+    </a>
+
     <h4>
         {% blocktrans %}
             {{ cash_box }} currently has {{ cash_box_balance }}
         {% endblocktrans %}
     </h4>
 
-    <a href="{% url 'cash_box_transaction_overview' name=cash_box.name %}">
-        <button class="btn btn-info mb-3">
+    <a href="{% url 'cash_box_invoice_submission_view' name=cash_box.name %}">
+        <button class="btn btn-primary mb-3">
             {% blocktrans %}
-                Click here to view your transactions
+                Click here to add an invoice
             {% endblocktrans %}
         </button>
     </a>
