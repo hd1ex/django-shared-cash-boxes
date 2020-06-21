@@ -1,6 +1,6 @@
-import os
 import datetime
 import fnmatch
+import os
 import pathlib
 from typing import Optional
 
@@ -14,6 +14,7 @@ from model_utils.managers import InheritanceManager
 def get_unique_invoice_filename(instance, filename: str) -> pathlib.Path:
     date = datetime.date.today().isoformat()
     ext = os.path.splitext(filename)[1]
+    assert settings.MEDIA_ROOT, 'Please set MEDIA_ROOT for user uploaded files'
     os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
     media = os.listdir(settings.MEDIA_ROOT)
     num = 1
