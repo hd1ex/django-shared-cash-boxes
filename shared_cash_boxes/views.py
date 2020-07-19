@@ -7,13 +7,18 @@ from django.http import HttpResponseRedirect, HttpRequest
 from django.shortcuts import get_object_or_404, render, reverse
 from django.utils.translation import gettext
 from django.views.generic import ListView
+from django.shortcuts import get_object_or_404
+from django_tables2 import SingleTableView
 
 from shared_cash_boxes.forms import InvoiceForm
 from shared_cash_boxes.models import CashBox, Euro, Invoice, Transaction
+from shared_cash_boxes.tables import InvoiceTable, TransactionTable, \
+    DescribedTransaction, CashBoxTable, UserOverviewTable
 
 
-class UserOverview(LoginRequiredMixin, ListView):
+class UserOverview(LoginRequiredMixin, SingleTableView):
     template_name = 'shared_cash_boxes/user_overview.html'
+    table_class = UserOverviewTable
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -21,6 +26,8 @@ class UserOverview(LoginRequiredMixin, ListView):
             self.request.user)
         context['abs_total_user_balance'] = Euro(
             abs(context['total_user_balance']))
+        context['table'] = UserOverviewTable(self.get_queryset(),
+                                             request=self.request)
         return context
 
     def get_queryset(self):
@@ -33,8 +40,9 @@ class UserOverview(LoginRequiredMixin, ListView):
         return cash_boxes
 
 
-class CashBoxesOverview(LoginRequiredMixin, ListView):
+class CashBoxesOverview(LoginRequiredMixin, SingleTableView):
     template_name = 'shared_cash_boxes/cash_boxes_overview.html'
+    table_class = CashBoxTable
 
     def get_queryset(self):
         cash_boxes = CashBox.objects.all()
@@ -50,11 +58,14 @@ class CashBoxesOverview(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context['search'] = self.request.GET.get('search', '')
+        context['table'] = CashBoxTable(self.get_queryset(),
+                                        request=self.request)
         return context
 
 
-class InvoiceList(LoginRequiredMixin, ListView):
+class InvoiceList(LoginRequiredMixin, SingleTableView):
     template_name = 'shared_cash_boxes/invoice_list.html'
+    table_class = InvoiceTable
 
     def get_queryset(self):
         name = self.kwargs['name']
@@ -74,26 +85,29 @@ class InvoiceList(LoginRequiredMixin, ListView):
         context['cash_box'] = get_object_or_404(CashBox,
                                                 name=self.kwargs['name'])
         context['cash_box_balance'] = context['cash_box'].get_balance()
+        context['table'] = InvoiceTable(self.get_queryset(),
+                                        request=self.request,
+                                        order_by="-date")
         return context
 
 
-class TransactionList(LoginRequiredMixin, ListView):
+class TransactionList(LoginRequiredMixin, SingleTableView):
     template_name = 'shared_cash_boxes/transaction_list.html'
+    table_class = TransactionTable
 
     def get_queryset(self):
         name = self.kwargs['name']
         transactions = Transaction.objects.filter(
-            cash_box__name=name, user=self.request.user).select_subclasses()
+            cash_box__name=name).select_subclasses()
+        transactions = [DescribedTransaction(**vars(t)) for t in
+                        Transaction.objects.filter(
+                            cash_box__name=name,
+                            user=self.request.user).select_subclasses().all()]
 
         search = self.request.GET.get('search', '').lower()
         if search != '':
-            return list(
-                filter(lambda t: ((hasattr(t, 'description')
-                                   and search in t.description.lower())
-                                  or (not hasattr(t, 'description')
-                                      and search in gettext('cash flow'))),
-                       transactions.all())
-            )
+            return list(filter(lambda t: search in t.description.lower(),
+                               transactions))
         else:
             return transactions
 
@@ -105,6 +119,9 @@ class TransactionList(LoginRequiredMixin, ListView):
         context['user_balance'] = context['cash_box'].get_user_balance(
             self.request.user)
         context['abs_user_balance'] = Euro(abs(context['user_balance']))
+        context['table'] = TransactionTable(self.get_queryset(),
+                                            request=self.request,
+                                            order_by="-date")
         return context
 
 

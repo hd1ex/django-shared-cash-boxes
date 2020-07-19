@@ -45,6 +45,10 @@ class CashBox(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def current_balance(self):
+        return self.get_balance()
+
     def get_balance(self, date: Optional[datetime.date] = None) -> Euro:
         """
         Returns the amount of money that should (theoretically) be in the cash

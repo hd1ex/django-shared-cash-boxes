@@ -3,6 +3,7 @@
 
 {% load i18n %}
 {% load django_bootstrap_breadcrumbs %}
+{% load render_table from django_tables2 %}
 
 {% block breadcrumbs %}
     {{ block.super }}
@@ -43,36 +44,6 @@
 
     {% include 'shared_cash_boxes/search.html' %}
 
-    <table id='transaction-list' class='table table-striped'>
-
-        <thead>
-        <tr>
-            <th>{% trans 'Date' %}</th>
-            <th>{% trans 'Description' %}</th>
-            <th>{% trans 'User' %}</th>
-            <th>{% trans 'File' %}</th>
-            <th>{% trans 'Amount' %}</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        {% for invoice in object_list %}
-            <tr>
-                <td>{{ invoice.date }}</td>
-                <td>{{ invoice.description }}</td>
-                <td>{{ invoice.user.get_full_name }}</td>
-                <td>
-                    {% if invoice.file.name %}
-                        <a href="/files/{{ invoice.file.name }}">
-                            {% trans 'Invoice' %}
-                        </a>
-                    {% endif %}
-                </td>
-                <td>{{ invoice.get_amount }}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-
-    </table>
+    {% render_table table %}
 
 {% endblock %}

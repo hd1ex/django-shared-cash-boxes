@@ -16,12 +16,13 @@ The treasurer should be a Django admin.
 Quick start
 -----------
 
-1. Add "shared_cash_boxes" and its dependency "django_bootstrap_breadcrumbs"
-to your INSTALLED_APPS setting like this::
+1. Add "shared_cash_boxes" and its dependencies "django_bootstrap_breadcrumbs",
+"django_tables2" to your INSTALLED_APPS setting like this::
 
     INSTALLED_APPS = [
         ...
         'django_bootstrap_breadcrumbs',
+        'django_tables2',
         'shared_cash_boxes',
     ]
 
