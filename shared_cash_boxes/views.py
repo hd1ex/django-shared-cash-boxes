@@ -4,10 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpRequest
-from django.shortcuts import get_object_or_404, render, reverse
-from django.utils.translation import gettext
-from django.views.generic import ListView
 from django.shortcuts import get_object_or_404
+from django.shortcuts import render, reverse
+from django.utils.translation import gettext
 from django_tables2 import SingleTableView
 
 from shared_cash_boxes.forms import InvoiceForm
@@ -105,8 +104,6 @@ class TransactionList(LoginRequiredMixin, SingleTableView):
 
     def get_queryset(self):
         name = self.kwargs['name']
-        transactions = Transaction.objects.filter(
-            cash_box__name=name).select_subclasses()
         transactions = [DescribedTransaction(**vars(t)) for t in
                         Transaction.objects.filter(
                             cash_box__name=name,
