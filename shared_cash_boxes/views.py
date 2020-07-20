@@ -69,15 +69,23 @@ class InvoiceList(LoginRequiredMixin, SingleTableView):
 
     def get_queryset(self):
         name = self.kwargs['name']
-        invoices = Invoice.objects.filter(cash_box__name=name)
+        cash_box = get_object_or_404(CashBox, name=name)
+        invoices = Invoice.objects.filter(cash_box=cash_box)
 
         search = self.request.GET.get('search', '')
         if search != '':
             invoice_filter = Q(description__icontains=search)
 
-            return invoices.filter(invoice_filter)
+            res = list(invoices.filter(invoice_filter).all())
         else:
-            return invoices
+            res = list(invoices.all())
+
+        if cash_box.initial_amount != 0:
+            res.append(Invoice(description=gettext('Initial amount'),
+                               amount=cash_box.initial_amount,
+                               cash_box=cash_box,
+                               date=None))
+        return res
 
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
