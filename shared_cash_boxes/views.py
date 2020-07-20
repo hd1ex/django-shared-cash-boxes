@@ -34,7 +34,7 @@ class UserOverview(LoginRequiredMixin, SingleTableView):
         cash_boxes = CashBox.objects.all()
 
         for cash_box in cash_boxes:
-            cash_box.user_balance = cash_box.get_total_user_balance(
+            cash_box.user_balance = cash_box.get_user_balance(
                 self.request.user)
 
         return cash_boxes
