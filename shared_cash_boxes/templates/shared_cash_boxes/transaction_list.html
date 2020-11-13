@@ -16,21 +16,21 @@
     {{ block.super }}
     <h2>
         {% blocktrans %}
-            List of your transactions with {{ cash_box }}
+            List of the transactions of {{ user }} with {{ cash_box }}
         {% endblocktrans %}
     </h2>
 
     <h4>
         {% if user_balance > 0 %}
             {% blocktrans %}
-                The system owes you {{ abs_user_balance }}
+                {{ cash_box }} owes {{ user }} {{ abs_user_balance }}
             {% endblocktrans %}
         {% elif user_balance < 0 %}
             {% blocktrans %}
-                You owe the system {{ abs_user_balance }}
+                {{ user }} owes {{ cash_box }} {{ abs_user_balance }}
             {% endblocktrans %}
         {% else %}
-            {% blocktrans %} Call it quits. {% endblocktrans %}
+            {% blocktrans %} All debts are paid. {% endblocktrans %}
         {% endif %}
     </h4>
 

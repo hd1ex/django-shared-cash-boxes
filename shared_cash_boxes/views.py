@@ -1,7 +1,8 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpRequest
 from django.shortcuts import get_object_or_404
@@ -30,13 +31,14 @@ class UserOverview(LoginRequiredMixin, SingleTableView):
         return context
 
     def get_queryset(self):
-        cash_boxes = CashBox.objects.all()
+        # Return all users, which are active or have debts
+        users: List[User] = []
 
-        for cash_box in cash_boxes:
-            cash_box.user_balance = cash_box.get_user_balance(
-                self.request.user)
+        for user in User.objects.all():
+            if user.is_active or CashBox.get_total_user_balance(user) != 0:
+                users.append(user)
 
-        return cash_boxes
+        return users
 
 
 class CashBoxesOverview(LoginRequiredMixin, SingleTableView):
@@ -102,12 +104,21 @@ class TransactionList(LoginRequiredMixin, SingleTableView):
     template_name = 'shared_cash_boxes/transaction_list.html'
     table_class = TransactionTable
 
+    def get_user_from_kwargs(self):
+        username = self.kwargs.get('user')
+        if username is None:
+            return self.request.user
+        else:
+            return get_object_or_404(User, username=username)
+
     def get_queryset(self):
         name = self.kwargs['name']
+        user = self.get_user_from_kwargs()
+
         transactions = [DescribedTransaction(**vars(t)) for t in
                         Transaction.objects.filter(
                             cash_box__name=name,
-                            user=self.request.user).select_subclasses().all()]
+                            user=user).select_subclasses().all()]
 
         search = self.request.GET.get('search', '').lower()
         if search != '':
@@ -118,11 +129,12 @@ class TransactionList(LoginRequiredMixin, SingleTableView):
 
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
+        user = self.get_user_from_kwargs()
+        context['user'] = user.get_full_name()
         context['search'] = self.request.GET.get('search', '')
         context['cash_box'] = get_object_or_404(CashBox,
                                                 name=self.kwargs['name'])
-        context['user_balance'] = context['cash_box'].get_user_balance(
-            self.request.user)
+        context['user_balance'] = context['cash_box'].get_user_balance(user)
         context['abs_user_balance'] = Euro(abs(context['user_balance']))
         context['table'] = TransactionTable(self.get_queryset(),
                                             request=self.request,
